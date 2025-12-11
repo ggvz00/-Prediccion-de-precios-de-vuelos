@@ -1,0 +1,3 @@
+Estadístico DW: 1.9799
+P-value: 0.1499
+Conclusión: Los errores son independientes (Cumple supuesto).

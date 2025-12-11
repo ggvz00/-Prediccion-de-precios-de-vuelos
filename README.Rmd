@@ -1,0 +1,160 @@
+---
+title: "Documentación del Proyecto"
+author: "Rocío Perez Gregorini (905323) y Gonzalo Vazquez (904203)"
+date: "Diciembre de 2025"
+output:
+  html_document:
+    theme: readable
+    toc: true
+---
+
+# 1. Descripción General
+
+**Objetivo.** Desarrollar un modelo predictivo para estimar tarifas aéreas en el mercado indio, identificando los factores estructurales (aerolínea, escalas, duración) que determinan el precio.
+
+**Hipótesis.** El precio no es puramente aleatorio; existen primas de marca (aerolíneas *Full-Service* vs *Low-Cost*) y costos operativos por tiempo que explican buena parte de la varianza de las tarifas.
+
+# 2. Estructura del Proyecto
+
+El proyecto respeta el principio de autocontención y el uso de rutas relativas (`here`):
+
+- `config/` → Parámetros globales y rutas (`parametros.R`).
+- `data/` → Datasets:
+  - `raw/`       → Archivo original (`Data_Train.xlsx`).
+  - `processed/` → Archivos intermedios (`.rds`).
+- `functions/` → Funciones personalizadas de limpieza y visualización.
+- `scripts/`   → Código de ejecución secuencial (`01_` a `05_`).
+- `outputs/`   → Resultados finales:
+  - `figures/`  → Gráficos en alta calidad (`.png`).
+  - `tables/`   → Tablas de diagnóstico y regresión (`.csv`).
+  - `reports/`  → Gráficos editorializados y conclusiones (`.txt`).
+
+# 3. Flujo de Trabajo (Instrucciones de Ejecución)
+
+Para reproducir el análisis se recomienda:
+
+1. Abrir el proyecto `.Rproj` en RStudio (carpeta raíz del proyecto).
+2. Ejecutar `config/parametros.R` para:
+   - Cargar librerías.
+   - Definir rutas.
+   - Crear las carpetas necesarias.
+3. Ejecutar todos los scripts de `functions/`:
+   - `carga_funciones.R`
+   - `limpieza_funciones.R`
+   - `visualizacion_funciones.R`
+4. Finalmente, ejecutar los scripts de la carpeta `scripts/` en este orden:
+
+   1. `01_carga_datos.R`  
+      Ingesta de datos y validación de estructura.
+
+   2. `02_limpieza.R`  
+      Procesamiento de fechas, duraciones y creación de variables limpias.
+
+   3. `03_exploratorio.R`  
+      Análisis exploratorio (EDA) estadístico y visual.
+
+   4. `04_analisis_principal.R`  
+      Modelado inferencial y predictivo (ANOVA, Tukey, regresión).
+
+   5. `05_storytelling.R`  
+      Generación de reportes y gráficos editorializados de negocio.
+
+# 4. Detalle de Scripts
+
+### `01_carga_datos.R`
+
+- **Función:** Carga inicial y validación de la base cruda.
+- **Procesos:**
+  - Chequeo de dimensiones.
+  - Verificación de existencia de la variable objetivo y variables clave.
+  - Primer vistazo con `skimr`.
+- **Output:** `data/processed/datos_raw.rds`.
+
+---
+
+### `02_limpieza.R`
+
+- **Función:** Higiene y estandarización de datos.
+- **Procesos:**
+  - Estandarización de nombres de columnas a `snake_case`.
+  - Conversión de `Duration` (texto) a minutos (`duration_min`).
+  - Conversión de `Total_Stops` a entero (`total_stops_num`).
+  - Conversión de `Date_of_Journey` a tipo `Date`.
+  - Detección de outliers (se decide conservarlos bajo justificación de negocio).
+- **Output:** `data/processed/datos_clean.rds`.
+
+---
+
+### `03_exploratorio.R` (EDA)
+
+- **Función:** Entendimiento de distribuciones y estructura de los datos.
+- **Procesos:**
+  - Análisis de estructura con `glimpse`.
+  - Tabla de valores faltantes por columna.
+  - Cálculo de estadísticas descriptivas de `price` y `duration_min`.
+  - Histogramas de precios (detección de asimetría positiva).
+  - Boxplots comparativos de `price` por `airline`.
+  - Gráfico de dispersión `duration_min` vs `price`.
+- **Output:**
+  - Imágenes en `outputs/figures/`.
+  - Tablas resumen en `outputs/tables/`.
+
+---
+
+### `04_analisis_principal.R` (Modelado)
+
+- **Función:** Inferencia estadística y construcción del modelo predictivo.
+- **Procesos:**
+  - **Feature Engineering:**
+    - Creación de `log_price` (transformación logarítmica del precio).
+    - Clasificación de la duración en bloques (`duration_block`).
+    - Extracción de hora de salida y creación de `momento_dia`.
+    - Segmentación de aerolíneas en `Full-Service` vs `Low-Cost`.
+  - **Correlación:** Análisis de relación lineal entre `duration_min` y `log_price`.
+  - **ANOVA & Tukey:**
+    - Validación de diferencias significativas de precios entre aerolíneas, controlando por duración.
+    - Comparaciones post-hoc (Tukey HSD) entre pares de aerolíneas.
+  - **Regresión Lineal Múltiple:**
+    - Ajuste del modelo `log_price ~ airline + duration_min + total_stops_num + momento_dia`.
+    - Cálculo de R² ajustado (~0.65).
+  - **Validación de Supuestos:**
+    - Test de Durbin-Watson (independencia de errores).
+    - Cálculo de VIF (multicolinealidad entre predictores).
+- **Output:**
+  - Gráficos de diagnóstico en `outputs/figures/`.
+  - Tablas de resultados (ANOVA, Tukey, coeficientes, diagnósticos) en `outputs/tables/`.
+
+---
+
+### `05_reportes.R` (Reporte Final)
+
+- **Función:** Comunicación de hallazgos y generación de insumos para el informe en diapositivas.
+- **Procesos:**
+  - Construcción de variables de segmentación (`tipo_aerolinea`, `escalas_cat`).
+  - **Gráfico 1:** Ranking de costo de marca (precio mediano por aerolínea, comparando *Full-Service* vs *Low-Cost*).
+  - **Gráfico 2:** Dinámica de precios por duración del vuelo y tipo de servicio (pendientes diferenciadas).
+  - Generación de archivo de conclusiones clave (`05_conclusiones_clave.txt`).
+- **Output:** Imágenes finales en `outputs/reports/` y archivo de conclusiones.
+
+# 5. Librerías Utilizadas
+
+El proyecto requiere los siguientes paquetes de R:
+
+- **Gestión de proyectos y datos:**
+  - `here`, `readxl`, `readr`
+
+- **Manipulación y limpieza:**
+  - `tidyverse`, `dplyr`, `tidyr`, `janitor`, `lubridate`
+
+- **Visualización:**
+  - `ggplot2`, `scales`, `ggrepel`, `grid`, `gridExtra`
+
+- **Estadística y modelado:**
+  - `broom` (tablas ordenadas de modelos)
+  - `car` (VIF)
+  - `lmtest` (Durbin-Watson)
+  - `skimr` (resumen descriptivo)
+
+---
+
+*Trabajo Final - Ciencia de Datos para Economía y Negocios*

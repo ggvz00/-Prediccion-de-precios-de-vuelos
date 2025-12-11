@@ -1,0 +1,5 @@
+                    GVIF Df GVIF^(1/(2*Df))
+airline         1.710426 11        1.024697
+duration_min    2.505591  1        1.582906
+total_stops_num 2.448488  1        1.564764
+momento_dia     1.105237  3        1.016817

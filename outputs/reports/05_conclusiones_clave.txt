@@ -1,0 +1,5 @@
+El precio presenta fuerte asimetría positiva → se justifica la transformación logarítmica.
+Las aerolíneas low-cost concentran precios más bajos y menos dispersión.
+Jet Airways Business se ubica como segmento premium.
+La duración influye, pero la aerolínea explica mejor la variación en precios.
+El modelo final alcanza un R2 ajustado cercano al 0.65
